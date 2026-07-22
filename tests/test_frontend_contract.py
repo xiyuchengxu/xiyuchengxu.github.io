@@ -19,6 +19,7 @@ class FrontendContractTests(unittest.TestCase):
             'data-view="archive"',
             'data-view="tags"',
             'data-view="about"',
+            'id="articles"',
         ):
             self.assertIn(snippet, self.index)
 
@@ -26,6 +27,22 @@ class FrontendContractTests(unittest.TestCase):
         self.assertEqual(self.index.count('class="skeleton-post"'), 3)
         self.assertIn('aria-busy="true"', self.index)
         self.assertIn('<noscript>', self.index)
+
+    def test_script_exposes_real_blog_actions_without_social_counters(self):
+        for snippet in (
+            "function renderPosts(filteredPosts)",
+            "function matchesFilter(post, filter)",
+            "function filterPosts()",
+            "navigator.clipboard.writeText",
+            "function showToast(message)",
+            'localStorage.setItem("blog-theme"',
+            "post.url",
+            "post.title",
+            "post.summary",
+        ):
+            self.assertIn(snippet, self.script)
+        for forbidden in ("handleLike", "like-count", "repost-btn", "reply-btn", "post.stats"):
+            self.assertNotIn(forbidden, self.script)
 
 
 if __name__ == "__main__":
