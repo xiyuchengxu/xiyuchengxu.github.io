@@ -45,5 +45,22 @@ class FrontendContractTests(unittest.TestCase):
             self.assertNotIn(forbidden, self.script)
 
 
+    def test_styles_define_three_column_mobile_and_accessible_states(self):
+        for snippet in (
+            ".app-shell",
+            "grid-template-columns: minmax(180px, 0.72fr) minmax(0, 640px) minmax(240px, 0.9fr)",
+            ".post-item",
+            ".skeleton-post",
+            ".empty-state",
+            ".mobile-nav",
+            "@media (max-width: 980px)",
+            "@media (max-width: 700px)",
+            ":focus-visible",
+            "prefers-reduced-motion: reduce",
+        ):
+            self.assertIn(snippet, self.styles)
+        self.assertNotIn("linear-gradient", self.styles)
+
+
 if __name__ == "__main__":
     unittest.main()
