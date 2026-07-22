@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.build import BuildError, load_post
+from scripts.build import BuildError, build_site, load_post
 
 
 VALID_POST = """---
@@ -61,3 +61,50 @@ class LoadPostTests(unittest.TestCase):
         content = VALID_POST.replace("tags:\n  - Python\n  - 建站", "tags: Python")
         with self.assertRaisesRegex(BuildError, "tags 必须是非空字符串列表"):
             load_post(self.write(content=content))
+
+TEMPLATE = "<title>{{PAGE_TITLE}}</title><time>{{DATE}}</time><div>{{TAGS}}</div><main>{{CONTENT}}</main>"
+
+
+class BuildSiteTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name)
+        self.posts = self.root / "posts"
+        self.posts.mkdir()
+        self.docs = self.root / "docs"
+        self.docs.mkdir()
+        self.template = self.root / "template.html"
+        self.template.write_text(TEMPLATE, encoding="utf-8")
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def write(self, name, title, day, tags):
+        body = VALID_POST.replace("title: 第一篇文章", f"title: {title}").replace(
+            "date: 2024-01-15", f"date: {day}"
+        )
+        body = body.replace(
+            "  - Python\n  - 建站",
+            "\n".join(f"  - {tag}" for tag in tags),
+        )
+        (self.posts / name).write_text(body, encoding="utf-8")
+
+    def test_sorted_index_unique_tags_and_pages(self):
+        self.write("2024-01-15-first.md", "第一篇", "2024-01-15", ["Python", "建站"])
+        self.write("2024-01-16-second.md", "第二篇", "2024-01-16", ["Python", "CSS"])
+        build_site(self.posts, self.docs, self.template)
+        index = (self.docs / "posts.js").read_text(encoding="utf-8")
+        self.assertLess(index.index('"第二篇"'), index.index('"第一篇"'))
+        self.assertIn('"url": "posts/2024-01-16-second.html"', index)
+        self.assertIn('const popularTags = ["Python", "CSS", "建站"];', index)
+        self.assertTrue((self.docs / "posts/2024-01-15-first.html").is_file())
+
+    def test_idempotence_and_stale_page_removal(self):
+        self.write("2024-01-15-first.md", "第一篇", "2024-01-15", ["Python"])
+        build_site(self.posts, self.docs, self.template)
+        before = (self.docs / "posts.js").read_bytes()
+        build_site(self.posts, self.docs, self.template)
+        self.assertEqual(before, (self.docs / "posts.js").read_bytes())
+        (self.posts / "2024-01-15-first.md").unlink()
+        build_site(self.posts, self.docs, self.template)
+        self.assertFalse((self.docs / "posts/2024-01-15-first.html").exists())
