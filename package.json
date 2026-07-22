@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "scripts": {
+    "test:visual": "playwright test tests/visual.spec.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.54.1"
+  }
+}
