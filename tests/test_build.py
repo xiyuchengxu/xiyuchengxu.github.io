@@ -1,3 +1,4 @@
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -108,3 +109,27 @@ class BuildSiteTests(unittest.TestCase):
         (self.posts / "2024-01-15-first.md").unlink()
         build_site(self.posts, self.docs, self.template)
         self.assertFalse((self.docs / "posts/2024-01-15-first.html").exists())
+
+
+class RepositoryContractTests(unittest.TestCase):
+    def test_renderer_uses_generated_fields_and_handles_detail_page(self):
+        script = Path("docs/script.js").read_text(encoding="utf-8")
+        for snippet in (
+            'href="${post.url}"',
+            "${post.title}",
+            "${post.summary}",
+            "if (!postsList) return;",
+        ):
+            self.assertIn(snippet, script)
+
+    def test_generated_urls_exist(self):
+        build_site(
+            Path("posts"),
+            Path("docs"),
+            Path("templates/post-template.html"),
+        )
+        index = Path("docs/posts.js").read_text(encoding="utf-8")
+        urls = re.findall(r'"url": "(posts/[^"]+\.html)"', index)
+        self.assertTrue(urls)
+        for url in urls:
+            self.assertTrue((Path("docs") / url).is_file())

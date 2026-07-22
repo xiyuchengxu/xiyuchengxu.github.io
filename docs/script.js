@@ -42,6 +42,7 @@ function updateThemeIcon() {
 // 渲染博文列表
 function renderPosts() {
   const postsList = document.getElementById('postsList');
+  if (!postsList) return;
   
   const postsHTML = posts.map(post => `
     <article class="post-card">
@@ -61,7 +62,10 @@ function renderPosts() {
         </div>
       </div>
       
-      <div class="post-content">${post.content}</div>
+      <a class="post-title-link" href="${post.url}">
+        <h2 class="post-title">${post.title}</h2>
+      </a>
+      <div class="post-content">${post.summary}</div>
       
       <div class="post-tags">
         ${post.tags.map(tag => `<span class="tag">#${tag}</span>`).join('')}
