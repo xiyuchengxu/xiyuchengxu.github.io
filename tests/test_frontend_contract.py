@@ -112,5 +112,21 @@ class FrontendContractTests(unittest.TestCase):
             self.assertNotIn(forbidden, self.script)
 
 
+    def test_styles_support_page_variants_and_icon_only_mobile_navigation(self):
+        for snippet in (
+            ".visually-hidden",
+            ".page-search",
+            ".page-archive",
+            ".page-tags",
+            ".about-content",
+            ".mobile-nav a",
+            "min-width: 44px",
+            "min-height: 44px",
+            "@media (max-width: 760px)",
+            "padding-bottom: calc(64px + env(safe-area-inset-bottom))",
+        ):
+            self.assertIn(snippet, self.styles)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -118,7 +118,7 @@ class RepositoryContractTests(unittest.TestCase):
             "post.url",
             "post.title",
             "post.summary",
-            'getElementById("postsList")',
+            'getElementById("pageContent")',
         ):
             self.assertIn(snippet, script)
 
