@@ -3,67 +3,45 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>YuCheng 的博客 - 技术笔记</title>
+  <title>YuCheng 的博客</title>
   <meta name="description" content="YuCheng 的个人技术博客，记录编程、建站与持续学习。">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body data-page="home">
   <div class="app-shell">
-    <header class="mobile-header">
-      <a class="wordmark" href="index.html">YuCheng 的博客</a>
-      <button class="icon-button" id="themeToggle" type="button" aria-label="切换主题" title="切换主题">◐</button>
-    </header>
-
-    <aside class="sidebar" aria-label="站点导航">
-      <a class="wordmark" href="index.html">YuCheng 的博客</a>
+    <aside class="sidebar" aria-label="桌面导航">
+      <a class="wordmark" href="index.html">YuCheng</a>
       <nav class="sidebar-nav" aria-label="主导航">
-        <a class="nav-link is-active" href="index.html" data-view="home">⌂<span>首页</span></a>
-        <a class="nav-link" href="#articles" data-view="articles">▤<span>文章</span></a>
-        <a class="nav-link" href="#tags" data-view="tags">#<span>标签</span></a>
-        <a class="nav-link" href="#archive" data-view="archive">◷<span>归档</span></a>
-        <a class="nav-link" href="#about" data-view="about">i<span>关于</span></a>
+        <a class="nav-link is-active" href="index.html" aria-current="page">⌂<span>首页</span></a>
+        <a class="nav-link" href="search.html">⌕<span>搜索</span></a>
+        <a class="nav-link" href="archive.html">◷<span>归档</span></a>
+        <a class="nav-link" href="tags.html">#<span>标签</span></a>
+        <a class="nav-link" href="about.html">i<span>关于</span></a>
       </nav>
-      <button class="theme-button" id="themeToggleDesktop" type="button" aria-label="切换主题" title="切换主题">◐<span>主题</span></button>
     </aside>
 
     <main class="timeline" id="mainContent">
       <header class="timeline-header">
-        <div><p class="eyebrow">个人技术笔记</p><h1>YuCheng 的博客</h1></div>
-        <button class="icon-button" id="searchToggle" type="button" aria-label="搜索文章" title="搜索文章">⌕</button>
+        <h1>YuCheng 的博客</h1>
+        <button class="icon-button" type="button" data-theme-toggle aria-label="切换主题" title="切换主题">◐</button>
       </header>
-      <form class="search-panel" id="searchPanel" role="search" hidden>
-        <label for="postSearch">搜索文章</label>
-        <input id="postSearch" name="q" type="search" autocomplete="off" placeholder="按标题、摘要或标签搜索">
-      </form>
-      <nav class="topic-tabs" id="articles" aria-label="文章栏目">
-        <button class="topic-tab is-active" type="button" data-filter="all" aria-pressed="true">全部文章</button>
-        <button class="topic-tab" type="button" data-filter="technical" aria-pressed="false">技术笔记</button>
-        <button class="topic-tab" type="button" data-filter="notes" aria-pressed="false">随想</button>
-      </nav>
-      <section class="post-list" id="postsList" aria-live="polite" aria-busy="true">
-        <article class="skeleton-post" aria-hidden="true"><div class="skeleton-line skeleton-meta"></div><div class="skeleton-line skeleton-title"></div><div class="skeleton-line skeleton-body"></div><div class="skeleton-line skeleton-actions"></div></article>
-        <article class="skeleton-post" aria-hidden="true"><div class="skeleton-line skeleton-meta"></div><div class="skeleton-line skeleton-title"></div><div class="skeleton-line skeleton-body"></div><div class="skeleton-line skeleton-actions"></div></article>
-        <article class="skeleton-post" aria-hidden="true"><div class="skeleton-line skeleton-meta"></div><div class="skeleton-line skeleton-title"></div><div class="skeleton-line skeleton-body"></div><div class="skeleton-line skeleton-actions"></div></article>
+      <section id="pageContent" class="post-list" aria-live="polite" aria-busy="true">
+        <article class="skeleton-post" aria-hidden="true"><span class="skeleton-line skeleton-meta"></span><span class="skeleton-line skeleton-title"></span><span class="skeleton-line skeleton-body"></span></article>
+        <article class="skeleton-post" aria-hidden="true"><span class="skeleton-line skeleton-meta"></span><span class="skeleton-line skeleton-title"></span><span class="skeleton-line skeleton-body"></span></article>
+        <article class="skeleton-post" aria-hidden="true"><span class="skeleton-line skeleton-meta"></span><span class="skeleton-line skeleton-title"></span><span class="skeleton-line skeleton-body"></span></article>
       </section>
       <noscript><p class="noscript-message">文章目录需要 JavaScript 加载。请直接查看 <a href="posts/2024-01-15-hello-world.html">现有文章</a>。</p></noscript>
     </main>
 
-    <aside class="rail" aria-label="博客辅助信息">
-      <section class="author-summary" id="about"><p class="eyebrow">作者</p><h2>YuCheng</h2><p>记录编程、建站与持续学习。</p><a href="mailto:hello@example.com">联系我</a></section>
-      <section id="tags"><h2>标签</h2><div class="tag-list" id="tagCloud"></div></section>
-      <section id="archive"><h2>归档</h2><div class="archive-list" id="archiveList"></div></section>
-      <section><h2>最近文章</h2><ol class="recent-posts" id="recentPosts"></ol></section>
-    </aside>
+    <aside class="rail" id="rightRail" aria-label="博客辅助信息"></aside>
   </div>
-
   <nav class="mobile-nav" aria-label="移动端导航">
-    <a class="nav-link is-active" href="index.html" data-view="home" aria-label="首页" title="首页">⌂<span>首页</span></a>
-    <button class="nav-link" type="button" data-view="search" aria-label="搜索" title="搜索">⌕<span>搜索</span></button>
-    <a class="nav-link" href="#archive" data-view="archive" aria-label="归档" title="归档">◷<span>归档</span></a>
-    <a class="nav-link" href="#tags" data-view="tags" aria-label="标签" title="标签">#<span>标签</span></a>
-    <a class="nav-link" href="#about" data-view="about" aria-label="关于" title="关于">i<span>关于</span></a>
+    <a href="index.html" aria-label="首页" title="首页" aria-current="page">⌂<span class="nav-label visually-hidden">首页</span></a>
+    <a href="search.html" aria-label="搜索" title="搜索">⌕<span class="nav-label visually-hidden">搜索</span></a>
+    <a href="archive.html" aria-label="归档" title="归档">◷<span class="nav-label visually-hidden">归档</span></a>
+    <a href="tags.html" aria-label="标签" title="标签">#<span class="nav-label visually-hidden">标签</span></a>
+    <a href="about.html" aria-label="关于" title="关于">i<span class="nav-label visually-hidden">关于</span></a>
   </nav>
-  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
   <script src="posts.js"></script>
   <script src="script.js"></script>
 </body>
