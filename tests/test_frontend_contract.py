@@ -134,5 +134,46 @@ class FrontendContractTests(unittest.TestCase):
         self.assertEqual(search.count('class="skeleton-post"'), 3)
 
 
+    def test_navigation_uses_local_svg_icons_with_accessible_links(self):
+        icon_ids = {
+            "index.html": "icon-home",
+            "search.html": "icon-search",
+            "archive.html": "icon-archive",
+            "tags.html": "icon-tags",
+            "about.html": "icon-about",
+        }
+        sprite_path = Path("docs/icons.svg")
+        self.assertTrue(sprite_path.exists(), "docs/icons.svg must exist")
+        sprite = sprite_path.read_text(encoding="utf-8")
+
+        for icon_id in icon_ids.values():
+            self.assertIn(f'id="{icon_id}"', sprite)
+            self.assertIn(f'id="{icon_id}-active"', sprite)
+
+        for filename, active_icon_id in icon_ids.items():
+            html = Path("docs", filename).read_text(encoding="utf-8")
+            self.assertEqual(html.count('class="nav-icon" aria-hidden="true"'), 10)
+            self.assertIn('class="mobile-nav-links"', html)
+            self.assertIn(f'href="icons.svg#{active_icon_id}-active"', html)
+            for legacy_text_node in (">⌂<", ">⌕<", ">◷<", ">#<", ">i<"):
+                self.assertNotIn(legacy_text_node, html)
+
+    def test_styles_define_compact_svg_mobile_navigation(self):
+        for snippet in (
+            ".nav-icon",
+            "width: 28px",
+            "height: 28px",
+            "stroke-width: 2.5",
+            "grid-template-columns: repeat(5, 48px)",
+            "width: 288px",
+            "min-width: 48px",
+            "min-height: 48px",
+        ):
+            self.assertIn(snippet, self.styles)
+        self.assertNotIn("justify-content: space-around", self.styles)
+        mobile_rules = self.styles.split("@media (max-width: 760px)", 1)[1]
+        self.assertNotIn("background: var(--surface-hover);", mobile_rules)
+
+
 if __name__ == "__main__":
     unittest.main()
