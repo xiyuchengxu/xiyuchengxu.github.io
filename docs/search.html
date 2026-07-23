@@ -17,7 +17,11 @@
     <main class="timeline page-search" id="mainContent">
       <header class="timeline-header"><h1>搜索</h1><button class="icon-button" type="button" data-theme-toggle aria-label="切换主题" title="切换主题">◐</button></header>
       <form class="search-form" role="search"><label for="postSearch">搜索文章</label><input id="postSearch" type="search" autocomplete="off" placeholder="按标题、摘要或标签搜索"></form>
-      <section id="pageContent" class="post-list" aria-live="polite" aria-busy="true"></section>
+      <section id="pageContent" class="post-list" aria-live="polite" aria-busy="true">
+        <article class="skeleton-post" aria-hidden="true"><span></span><strong></strong><p></p></article>
+        <article class="skeleton-post" aria-hidden="true"><span></span><strong></strong><p></p></article>
+        <article class="skeleton-post" aria-hidden="true"><span></span><strong></strong><p></p></article>
+      </section>
     </main>
     <aside class="rail" id="rightRail" aria-label="博客辅助信息"></aside>
   </div>

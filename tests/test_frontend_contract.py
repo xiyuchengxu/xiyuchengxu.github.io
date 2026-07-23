@@ -128,5 +128,11 @@ class FrontendContractTests(unittest.TestCase):
             self.assertIn(snippet, self.styles)
 
 
+    def test_search_page_has_loading_skeletons(self):
+        search = Path("docs/search.html").read_text(encoding="utf-8")
+        self.assertIn('id="pageContent" class="post-list" aria-live="polite" aria-busy="true"', search)
+        self.assertEqual(search.count('class="skeleton-post"'), 3)
+
+
 if __name__ == "__main__":
     unittest.main()
