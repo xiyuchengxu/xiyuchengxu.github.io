@@ -1,5 +1,84 @@
+import struct
 import unittest
+import zlib
 from pathlib import Path
+
+
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+
+
+def _paeth_predictor(left, above, upper_left):
+    estimate = left + above - upper_left
+    left_distance = abs(estimate - left)
+    above_distance = abs(estimate - above)
+    upper_left_distance = abs(estimate - upper_left)
+    if left_distance <= above_distance and left_distance <= upper_left_distance:
+        return left
+    if above_distance <= upper_left_distance:
+        return above
+    return upper_left
+
+
+def _read_rgba_png(path):
+    data = path.read_bytes()
+    if data[:8] != PNG_SIGNATURE:
+        raise ValueError(f"{path} is not a PNG")
+
+    offset = 8
+    header = None
+    compressed = []
+    while offset < len(data):
+        length = struct.unpack(">I", data[offset:offset + 4])[0]
+        chunk_type = data[offset + 4:offset + 8]
+        payload = data[offset + 8:offset + 8 + length]
+        offset += 12 + length
+        if chunk_type == b"IHDR":
+            header = struct.unpack(">IIBBBBB", payload)
+        elif chunk_type == b"IDAT":
+            compressed.append(payload)
+        elif chunk_type == b"IEND":
+            break
+
+    if header is None:
+        raise ValueError(f"{path} has no IHDR chunk")
+    width, height, bit_depth, color_type, compression, filter_method, interlace = header
+    if (bit_depth, color_type, compression, filter_method, interlace) != (8, 6, 0, 0, 0):
+        raise ValueError(f"{path} must be an 8-bit, non-interlaced RGBA PNG")
+
+    raw = zlib.decompress(b"".join(compressed))
+    bytes_per_pixel = 4
+    stride = width * bytes_per_pixel
+    if len(raw) != (stride + 1) * height:
+        raise ValueError(f"{path} has an unexpected scanline length")
+
+    decoded = bytearray()
+    previous = bytearray(stride)
+    cursor = 0
+    for _ in range(height):
+        filter_type = raw[cursor]
+        cursor += 1
+        scanline = bytearray(raw[cursor:cursor + stride])
+        cursor += stride
+        for index in range(stride):
+            left = scanline[index - bytes_per_pixel] if index >= bytes_per_pixel else 0
+            above = previous[index]
+            upper_left = previous[index - bytes_per_pixel] if index >= bytes_per_pixel else 0
+            if filter_type == 1:
+                scanline[index] = (scanline[index] + left) & 0xFF
+            elif filter_type == 2:
+                scanline[index] = (scanline[index] + above) & 0xFF
+            elif filter_type == 3:
+                scanline[index] = (scanline[index] + ((left + above) // 2)) & 0xFF
+            elif filter_type == 4:
+                scanline[index] = (
+                    scanline[index] + _paeth_predictor(left, above, upper_left)
+                ) & 0xFF
+            elif filter_type != 0:
+                raise ValueError(f"{path} uses unknown PNG filter {filter_type}")
+        decoded.extend(scanline)
+        previous = scanline
+
+    return width, height, bytes(decoded)
 
 
 class FrontendContractTests(unittest.TestCase):
@@ -8,6 +87,27 @@ class FrontendContractTests(unittest.TestCase):
         cls.index = Path("docs/index.html").read_text(encoding="utf-8")
         cls.script = Path("docs/script.js").read_text(encoding="utf-8")
         cls.styles = Path("docs/styles.css").read_text(encoding="utf-8")
+
+    def test_home_topbar_assets_are_valid_local_png_files(self):
+        expected_sizes = {
+            Path("docs/assets/site-logo.png"): (128, 120),
+            Path("docs/assets/avatar.png"): (256, 256),
+        }
+        decoded_assets = {}
+        for path, expected_size in expected_sizes.items():
+            self.assertTrue(path.is_file(), f"{path} must exist")
+            self.assertGreater(path.stat().st_size, 1_000, f"{path} must not be empty")
+            width, height, rgba = _read_rgba_png(path)
+            self.assertEqual((width, height), expected_size)
+            decoded_assets[path] = (width, height, rgba)
+
+        width, height, logo_rgba = decoded_assets[Path("docs/assets/site-logo.png")]
+        alpha_at = lambda x, y: logo_rgba[((y * width + x) * 4) + 3]
+        self.assertEqual(
+            [alpha_at(0, 0), alpha_at(width - 1, 0), alpha_at(0, height - 1), alpha_at(width - 1, height - 1)],
+            [0, 0, 0, 0],
+        )
+        self.assertGreater(max(logo_rgba[3::4]), 0)
 
     def test_homepage_has_semantic_three_column_and_page_navigation(self):
         for snippet in (
