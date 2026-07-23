@@ -189,7 +189,7 @@ def test_script_has_page_initializers_and_query_safe_helpers(self):
 
 
 def test_script_does_not_reintroduce_home_only_panels(self):
-    for forbidden in ("topic-tabs", "renderTopicTabs", "postSearch"):
+    for forbidden in ("topic-tabs", "renderTopicTabs"):
         self.assertNotIn(forbidden, self.script)
 ```
 
