@@ -9,17 +9,17 @@ class FrontendContractTests(unittest.TestCase):
         cls.script = Path("docs/script.js").read_text(encoding="utf-8")
         cls.styles = Path("docs/styles.css").read_text(encoding="utf-8")
 
-    def test_homepage_has_semantic_three_column_and_mobile_navigation(self):
+    def test_homepage_has_semantic_three_column_and_page_navigation(self):
         for snippet in (
             '<nav class="sidebar-nav" aria-label="主导航">',
             '<main class="timeline" id="mainContent">',
-            '<aside class="rail" aria-label="博客辅助信息">',
+            '<aside class="rail" id="rightRail" aria-label="博客辅助信息">',
             '<nav class="mobile-nav" aria-label="移动端导航">',
-            'data-view="search"',
-            'data-view="archive"',
-            'data-view="tags"',
-            'data-view="about"',
-            'id="articles"',
+            'href="search.html"',
+            'href="archive.html"',
+            'href="tags.html"',
+            'href="about.html"',
+            'data-theme-toggle',
         ):
             self.assertIn(snippet, self.index)
 
@@ -89,6 +89,27 @@ class FrontendContractTests(unittest.TestCase):
         ):
             self.assertNotIn(obsolete, self.index)
         self.assertIn('id="rightRail"', self.index)
+
+
+    def test_script_has_page_initializers_and_query_safe_helpers(self):
+        for snippet in (
+            "function initHomePage()",
+            "function initSearchPage()",
+            "function initArchivePage()",
+            "function initTagsPage()",
+            "function initAboutPage()",
+            "function getSelectedQuery(name)",
+            "function groupPostsByMonth(posts)",
+            "function getTagCounts(posts)",
+            "encodeURIComponent(tag)",
+            'localStorage.setItem("blog-theme"',
+            "document.body.dataset.page",
+        ):
+            self.assertIn(snippet, self.script)
+
+    def test_script_does_not_reintroduce_home_only_panels(self):
+        for forbidden in ("topic-tabs", "renderTopicTabs"):
+            self.assertNotIn(forbidden, self.script)
 
 
 if __name__ == "__main__":

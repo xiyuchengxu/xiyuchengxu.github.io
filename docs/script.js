@@ -1,7 +1,3 @@
-const state = { filter: "all", query: "" };
-const technicalTags = new Set(["Python", "JavaScript", "CSS", "HTML", "建站", "开发", "技术", "Markdown", "Web 开发"]);
-const notesTags = new Set(["随想", "生活", "学习", "记录"]);
-
 function normalize(value) {
   return String(value || "").toLocaleLowerCase();
 }
@@ -16,32 +12,47 @@ function escapeHtml(value) {
   })[character]);
 }
 
-function matchesFilter(post, filter) {
-  if (filter === "all") return true;
-  const taxonomy = filter === "technical" ? technicalTags : notesTags;
-  return (post.tags || []).some((tag) => taxonomy.has(tag));
+function getPosts() {
+  return typeof posts === "undefined" ? [] : [...posts].sort((left, right) => right.date.localeCompare(left.date));
 }
 
-function filterPosts() {
-  const query = normalize(state.query);
-  return posts.filter((post) => {
-    const searchable = [post.title, post.summary, ...(post.tags || [])].map(normalize).join(" ");
-    return matchesFilter(post, state.filter) && searchable.includes(query);
-  });
+function getSelectedQuery(name) {
+  return new URLSearchParams(window.location.search).get(name) || "";
+}
+
+function getTagCounts(posts) {
+  return posts
+    .flatMap((post) => post.tags || [])
+    .reduce((counts, tag) => counts.set(tag, (counts.get(tag) || 0) + 1), new Map());
+}
+
+function groupPostsByMonth(posts) {
+  return posts.reduce((groups, post) => {
+    const month = post.date.slice(0, 7);
+    groups.set(month, [...(groups.get(month) || []), post]);
+    return groups;
+  }, new Map());
+}
+
+function tagUrl(tag) {
+  return `tags.html?tag=${encodeURIComponent(tag)}`;
+}
+
+function archiveUrl(month) {
+  return `archive.html?month=${encodeURIComponent(month)}`;
 }
 
 function postMarkup(post) {
   const author = post.author || {};
-  const tags = (post.tags || []).map((tag) => {
-    const safeTag = escapeHtml(tag);
-    return `<button class="tag" type="button" data-tag="${safeTag}">#${safeTag}</button>`;
-  }).join("");
+  const tags = (post.tags || []).map((tag) => (
+    `<a class="tag" href="${tagUrl(tag)}">#${escapeHtml(tag)}</a>`
+  )).join("");
   const title = escapeHtml(post.title);
   const summary = escapeHtml(post.summary);
   const url = escapeHtml(post.url);
   const date = escapeHtml(post.date);
-  const authorName = escapeHtml(author.name);
-  const authorHandle = escapeHtml(author.handle);
+  const authorName = escapeHtml(author.name || "YuCheng");
+  const authorHandle = escapeHtml(author.handle || "");
 
   return `<article class="post-item">
     <div class="post-meta"><span class="avatar" aria-hidden="true">Y</span><span><strong>${authorName}</strong> <span>${authorHandle}</span> · <time datetime="${date}">${date}</time></span></div>
@@ -51,48 +62,40 @@ function postMarkup(post) {
   </article>`;
 }
 
+function renderEmptyState(title, body, clearUrl) {
+  const action = clearUrl ? `<a class="clear-action" href="${clearUrl}">清除筛选</a>` : "";
+  return `<section class="empty-state"><h2>${escapeHtml(title)}</h2><p>${escapeHtml(body)}</p>${action}</section>`;
+}
+
 function renderPosts(filteredPosts) {
-  const list = document.getElementById("postsList");
+  const list = document.getElementById("pageContent");
   if (!list) return;
   list.setAttribute("aria-busy", "false");
   list.innerHTML = filteredPosts.length
     ? filteredPosts.map(postMarkup).join("")
-    : '<section class="empty-state"><h2>没有匹配的文章</h2><p>试试清除筛选或搜索其他关键词。</p><button type="button" id="clearFilters">清除筛选</button></section>';
+    : renderEmptyState("没有匹配的文章", "试试清除筛选或搜索其他关键词。", "search.html");
 }
 
-function renderTags() {
-  const tagCloud = document.getElementById("tagCloud");
-  if (!tagCloud) return;
-  tagCloud.innerHTML = popularTags.map((tag) => {
-    const safeTag = escapeHtml(tag);
-    return `<button class="tag" type="button" data-tag="${safeTag}">#${safeTag}</button>`;
-  }).join("");
+function matchesFilter(post, filter) {
+  const query = normalize(filter);
+  if (!query) return true;
+  return [post.title, post.summary, ...(post.tags || [])].map(normalize).join(" ").includes(query);
 }
 
-function renderArchive() {
-  const archive = document.getElementById("archiveList");
-  if (!archive) return;
-  const counts = new Map();
-  posts.forEach((post) => {
-    const month = String(post.date || "").slice(0, 7);
-    if (month) counts.set(month, (counts.get(month) || 0) + 1);
-  });
-  archive.innerHTML = [...counts.entries()].sort(([left], [right]) => right.localeCompare(left)).map(([month, count]) => (
-    `<a href="#articles">${escapeHtml(month)} <span>${count}</span></a>`
-  )).join("");
-}
-
-function renderRecentPosts() {
-  const recent = document.getElementById("recentPosts");
-  if (!recent) return;
-  recent.innerHTML = posts.slice(0, 5).map((post) => (
-    `<li><a href="${escapeHtml(post.url)}">${escapeHtml(post.title)}</a></li>`
-  )).join("");
+function filterPosts() {
+  return getPosts().filter((post) => matchesFilter(post, getSelectedQuery("q")));
 }
 
 function showToast(message) {
-  const toast = document.getElementById("toast");
-  if (!toast) return;
+  let toast = document.getElementById("toast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "toast";
+    toast.className = "toast";
+    toast.setAttribute("role", "status");
+    toast.setAttribute("aria-live", "polite");
+    document.body.append(toast);
+  }
   toast.textContent = message;
   toast.hidden = false;
   window.setTimeout(() => { toast.hidden = true; }, 1800);
@@ -111,86 +114,134 @@ async function copyPostLink(url) {
 function applyTheme(theme) {
   const nextTheme = theme === "light" ? "light" : "dark";
   document.documentElement.setAttribute("data-theme", nextTheme);
-  document.querySelectorAll("#themeToggle, #themeToggleDesktop").forEach((button) => {
+  document.querySelectorAll("[data-theme-toggle]").forEach((button) => {
     button.textContent = nextTheme === "dark" ? "◐" : "☀";
   });
 }
 
-function toggleTheme() {
-  const nextTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
-  applyTheme(nextTheme);
-  localStorage.setItem("blog-theme", nextTheme);
+function applyStoredTheme() {
+  applyTheme(localStorage.getItem("blog-theme") || "dark");
 }
 
-function updateActiveTabs() {
-  document.querySelectorAll(".topic-tab").forEach((tab) => {
-    const active = tab.dataset.filter === state.filter;
-    tab.classList.toggle("is-active", active);
-    tab.setAttribute("aria-pressed", String(active));
-  });
-}
-
-function renderCurrentView() {
-  renderPosts(filterPosts());
-  renderTags();
-  renderArchive();
-  renderRecentPosts();
-  updateActiveTabs();
-}
-
-function setTagFilter(tag) {
-  state.filter = "all";
-  state.query = tag;
-  const search = document.getElementById("postSearch");
-  if (search) search.value = tag;
-  renderCurrentView();
-  document.getElementById("articles")?.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
-function registerInteractions() {
-  document.querySelectorAll(".topic-tab").forEach((tab) => {
-    tab.addEventListener("click", () => {
-      state.filter = tab.dataset.filter || "all";
-      renderCurrentView();
+function bindThemeButtons() {
+  document.querySelectorAll("[data-theme-toggle]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const currentTheme = document.documentElement.getAttribute("data-theme");
+      const nextTheme = currentTheme === "dark" ? "light" : "dark";
+      applyTheme(nextTheme);
+      localStorage.setItem("blog-theme", nextTheme);
     });
   });
+}
 
-  const searchPanel = document.getElementById("searchPanel");
-  const searchInput = document.getElementById("postSearch");
-  document.getElementById("searchToggle")?.addEventListener("click", () => {
-    searchPanel.hidden = !searchPanel.hidden;
-    if (!searchPanel.hidden) searchInput.focus();
-  });
-  document.querySelector('[data-view="search"]')?.addEventListener("click", () => {
-    searchPanel.hidden = false;
-    searchInput.focus();
-  });
-  searchInput?.addEventListener("input", () => {
-    state.query = searchInput.value;
-    renderCurrentView();
-  });
-
+function bindArticleActions() {
   document.addEventListener("click", (event) => {
-    const tag = event.target.closest("[data-tag]");
-    if (tag) setTagFilter(tag.dataset.tag || "");
-
     const copy = event.target.closest("[data-url]");
     if (copy) copyPostLink(copy.dataset.url || "");
-
-    if (event.target.closest("#clearFilters")) {
-      state.filter = "all";
-      state.query = "";
-      if (searchInput) searchInput.value = "";
-      renderCurrentView();
-    }
   });
+}
 
-  document.getElementById("themeToggle")?.addEventListener("click", toggleTheme);
-  document.getElementById("themeToggleDesktop")?.addEventListener("click", toggleTheme);
+function renderRightRail(postList) {
+  const rail = document.getElementById("rightRail");
+  if (!rail) return;
+  const tags = [...getTagCounts(postList).entries()]
+    .sort(([leftTag, leftCount], [rightTag, rightCount]) => rightCount - leftCount || leftTag.localeCompare(rightTag))
+    .slice(0, 8)
+    .map(([tag, count]) => `<a class="tag" href="${tagUrl(tag)}">#${escapeHtml(tag)} <span>${count}</span></a>`)
+    .join("");
+  const months = [...groupPostsByMonth(postList).entries()]
+    .sort(([left], [right]) => right.localeCompare(left))
+    .slice(0, 6)
+    .map(([month, monthPosts]) => `<li><a href="${archiveUrl(month)}">${escapeHtml(month)} <span>${monthPosts.length}</span></a></li>`)
+    .join("");
+  const recent = postList.slice(0, 5)
+    .map((post) => `<li><a href="${escapeHtml(post.url)}">${escapeHtml(post.title)}</a></li>`)
+    .join("");
+
+  rail.innerHTML = `<section class="author-summary"><p class="eyebrow">作者</p><h2>YuCheng</h2><p>记录编程、建站与持续学习。</p><a href="about.html">了解更多</a></section>
+    <section><h2>标签</h2><div class="tag-list">${tags}</div><a class="rail-more" href="tags.html">查看全部标签</a></section>
+    <section><h2>归档</h2><ol class="archive-list">${months}</ol><a class="rail-more" href="archive.html">查看全部归档</a></section>
+    <section><h2>最近文章</h2><ol class="recent-posts">${recent}</ol></section>`;
+}
+
+function initHomePage() {
+  const postList = getPosts();
+  renderPosts(postList);
+  renderRightRail(postList);
+}
+
+function initSearchPage() {
+  const searchInput = document.getElementById("postSearch");
+  if (!searchInput) return;
+  const searchParams = new URLSearchParams(window.location.search);
+  const updateResults = () => {
+    const query = searchInput.value.trim();
+    const results = getPosts().filter((post) => matchesFilter(post, query));
+    const list = document.getElementById("pageContent");
+    if (!list) return;
+    list.setAttribute("aria-busy", "false");
+    list.innerHTML = results.length
+      ? results.map(postMarkup).join("")
+      : renderEmptyState("没有匹配的文章", "试试其他关键词。", "search.html");
+  };
+  searchInput.value = searchParams.get("q") || "";
+  searchInput.addEventListener("input", updateResults);
+  updateResults();
+  searchInput.focus();
+}
+
+function initArchivePage() {
+  const postList = getPosts();
+  const selectedMonth = getSelectedQuery("month");
+  const groups = groupPostsByMonth(postList);
+  const list = document.getElementById("pageContent");
+  if (!list) return;
+  list.setAttribute("aria-busy", "false");
+  if (selectedMonth && !groups.has(selectedMonth)) {
+    list.innerHTML = renderEmptyState("没有对应归档", "该月份没有文章。", "archive.html");
+    return;
+  }
+  const visibleGroups = selectedMonth ? [[selectedMonth, groups.get(selectedMonth)]] : [...groups.entries()].sort(([left], [right]) => right.localeCompare(left));
+  list.innerHTML = visibleGroups.map(([month, monthPosts]) => (
+    `<section class="archive-group"><h2>${escapeHtml(month)}</h2><ol>${monthPosts.map((post) => `<li><time datetime="${escapeHtml(post.date)}">${escapeHtml(post.date)}</time><a href="${escapeHtml(post.url)}">${escapeHtml(post.title)}</a></li>`).join("")}</ol></section>`
+  )).join("");
+}
+
+function initTagsPage() {
+  const postList = getPosts();
+  const selectedTag = getSelectedQuery("tag");
+  const counts = [...getTagCounts(postList).entries()]
+    .sort(([leftTag, leftCount], [rightTag, rightCount]) => rightCount - leftCount || leftTag.localeCompare(rightTag));
+  const list = document.getElementById("pageContent");
+  if (!list) return;
+  list.setAttribute("aria-busy", "false");
+  const tagLinks = `<div class="tag-list tag-directory">${counts.map(([tag, count]) => `<a class="tag" href="${tagUrl(tag)}">#${escapeHtml(tag)} <span>${count}</span></a>`).join("")}</div>`;
+  if (!selectedTag) {
+    list.innerHTML = tagLinks;
+    return;
+  }
+  const matchingPosts = postList.filter((post) => (post.tags || []).includes(selectedTag));
+  const resultMarkup = matchingPosts.length
+    ? matchingPosts.map(postMarkup).join("")
+    : renderEmptyState("没有匹配的文章", `没有带有 #${selectedTag} 的文章。`, "tags.html");
+  list.innerHTML = `${tagLinks}<section class="tag-results"><h2>#${escapeHtml(selectedTag)}</h2>${resultMarkup}</section>`;
+}
+
+function initAboutPage() {
+  // The static about page only needs shared theme and navigation behavior.
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  applyTheme(localStorage.getItem("blog-theme") || "dark");
-  renderCurrentView();
-  registerInteractions();
+  applyStoredTheme();
+  bindThemeButtons();
+  bindArticleActions();
+  const page = document.body.dataset.page;
+  const initializers = {
+    home: initHomePage,
+    search: initSearchPage,
+    archive: initArchivePage,
+    tags: initTagsPage,
+    about: initAboutPage,
+  };
+  initializers[page]?.();
 });
