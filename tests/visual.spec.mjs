@@ -1,11 +1,14 @@
 import { test, expect } from "@playwright/test";
 
-test.beforeEach(async ({ page }) => {
-  await page.goto("http://127.0.0.1:8000/docs/", { waitUntil: "networkidle" });
-});
+const baseUrl = "http://127.0.0.1:8000/docs/";
 
-test("desktop timeline has no horizontal overflow", async ({ page }) => {
+test("desktop home shows a compact header and three columns", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto(`${baseUrl}index.html`, { waitUntil: "networkidle" });
+
+  await expect(page.locator(".timeline-header")).toContainText("YuCheng 的博客");
+  await expect(page.locator(".timeline-header")).not.toContainText("个人技术笔记");
+  await expect(page.locator(".rail")).toBeVisible();
   await expect(page.locator(".app-shell")).toHaveScreenshot("desktop-home.png", {
     maxDiffPixelRatio: 0.01,
   });
@@ -14,13 +17,37 @@ test("desktop timeline has no horizontal overflow", async ({ page }) => {
   ).toBeTruthy();
 });
 
-test("mobile navigation leaves the final post action visible", async ({ page }) => {
+test("mobile home navigation is icon-only", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.locator(".post-item:last-child .copy-action").scrollIntoViewIfNeeded();
-  const nav = await page.locator(".mobile-nav").boundingBox();
-  const action = await page.locator(".post-item:last-child .copy-action").boundingBox();
-  expect(action.y + action.height).toBeLessThanOrEqual(nav.y);
+  await page.goto(`${baseUrl}index.html`, { waitUntil: "networkidle" });
+
+  await expect(page.locator(".mobile-nav a")).toHaveCount(5);
+  await expect(page.locator(".mobile-nav .nav-label")).toHaveCount(5);
+  await expect(page.locator(".mobile-nav .nav-label").first()).toHaveCSS("position", "absolute");
   await expect(page.locator(".app-shell")).toHaveScreenshot("mobile-home.png", {
+    maxDiffPixelRatio: 0.01,
+  });
+});
+
+test("mobile search filters an article", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`${baseUrl}search.html`, { waitUntil: "networkidle" });
+  await page.locator("#postSearch").fill("Markdown");
+
+  await expect(page.locator(".post-item")).toHaveCount(1);
+  await expect(page.locator(".app-shell")).toHaveScreenshot("mobile-search-results.png", {
+    maxDiffPixelRatio: 0.01,
+  });
+});
+
+test("mobile tags page honors an encoded tag query", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`${baseUrl}tags.html?tag=Web%20%E5%BC%80%E5%8F%91`, {
+    waitUntil: "networkidle",
+  });
+
+  await expect(page.locator(".post-item")).toHaveCount(1);
+  await expect(page.locator(".app-shell")).toHaveScreenshot("mobile-tags-filtered.png", {
     maxDiffPixelRatio: 0.01,
   });
 });
