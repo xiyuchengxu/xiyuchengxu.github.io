@@ -109,6 +109,54 @@ class FrontendContractTests(unittest.TestCase):
         )
         self.assertGreater(max(logo_rgba[3::4]), 0)
 
+    def test_homepage_uses_accessible_three_slot_brand_bar(self):
+        for snippet in (
+            '<header class="timeline-header home-topbar" aria-label="首页顶部栏">',
+            '<a class="topbar-avatar" href="about.html" aria-label="查看关于 YuCheng">',
+            '<img src="assets/avatar.png" alt="" width="40" height="40">',
+            '<h1 class="visually-hidden">YuCheng 的博客</h1>',
+            '<a class="topbar-logo" href="index.html" aria-label="返回首页">',
+            '<img src="assets/site-logo.png" alt="" width="128" height="120">',
+            '<button class="icon-button topbar-theme" type="button" data-theme-toggle',
+        ):
+            self.assertIn(snippet, self.index)
+        self.assertEqual(self.index.count('data-theme-toggle'), 1)
+        self.assertEqual(self.index.count('YuCheng 的博客</h1>'), 1)
+
+    def test_non_home_pages_keep_their_text_headers(self):
+        page_titles = {
+            "search.html": "搜索",
+            "archive.html": "归档",
+            "tags.html": "标签",
+            "about.html": "关于",
+        }
+        for filename, title in page_titles.items():
+            html = Path("docs", filename).read_text(encoding="utf-8")
+            self.assertIn('<header class="timeline-header">', html)
+            self.assertIn(f"<h1>{title}</h1>", html)
+            self.assertNotIn("home-topbar", html)
+            self.assertNotIn("topbar-avatar", html)
+            self.assertNotIn("topbar-logo", html)
+
+    def test_styles_define_centered_home_topbar_without_changing_shared_header(self):
+        home_rules = self.styles.split(".timeline-header.home-topbar {", 1)[1].split("}", 1)[0]
+        for snippet in (
+            "display: grid",
+            "grid-template-columns: 44px minmax(0, 1fr) 44px",
+            "height: 56px",
+            "min-height: 56px",
+            "justify-content: normal",
+            "gap: 0",
+            "padding-block: 0",
+        ):
+            self.assertIn(snippet, home_rules)
+
+        logo_rules = self.styles.split(".topbar-logo img {", 1)[1].split("}", 1)[0]
+        for snippet in ("max-width: 44px", "height: 32px", "object-fit: contain"):
+            self.assertIn(snippet, logo_rules)
+        self.assertIn('[data-theme="light"] .topbar-logo img', self.styles)
+        self.assertIn("filter: brightness(0)", self.styles)
+
     def test_homepage_has_semantic_three_column_and_page_navigation(self):
         for snippet in (
             '<nav class="sidebar-nav" aria-label="主导航">',
@@ -179,7 +227,7 @@ class FrontendContractTests(unittest.TestCase):
             self.assertIn('class="nav-label visually-hidden"', html)
 
     def test_homepage_is_limited_to_post_stream_and_compact_header(self):
-        self.assertIn('<h1>YuCheng 的博客</h1>', self.index)
+        self.assertIn('<h1 class="visually-hidden">YuCheng 的博客</h1>', self.index)
         for obsolete in (
             "个人技术笔记",
             'id="postSearch"',

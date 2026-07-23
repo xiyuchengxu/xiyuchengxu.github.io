@@ -21,9 +21,15 @@
     </aside>
 
     <main class="timeline" id="mainContent">
-      <header class="timeline-header">
-        <h1>YuCheng 的博客</h1>
-        <button class="icon-button" type="button" data-theme-toggle aria-label="切换主题" title="切换主题">◐</button>
+      <header class="timeline-header home-topbar" aria-label="首页顶部栏">
+        <a class="topbar-avatar" href="about.html" aria-label="查看关于 YuCheng">
+          <img src="assets/avatar.png" alt="" width="40" height="40">
+        </a>
+        <h1 class="visually-hidden">YuCheng 的博客</h1>
+        <a class="topbar-logo" href="index.html" aria-label="返回首页">
+          <img src="assets/site-logo.png" alt="" width="128" height="120">
+        </a>
+        <button class="icon-button topbar-theme" type="button" data-theme-toggle aria-label="切换主题" title="切换主题">◐</button>
       </header>
       <section id="pageContent" class="post-list" aria-live="polite" aria-busy="true">
         <article class="skeleton-post" aria-hidden="true"><span class="skeleton-line skeleton-meta"></span><span class="skeleton-line skeleton-title"></span><span class="skeleton-line skeleton-body"></span></article>
