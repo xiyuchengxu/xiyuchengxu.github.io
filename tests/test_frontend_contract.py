@@ -62,5 +62,34 @@ class FrontendContractTests(unittest.TestCase):
         self.assertNotIn("linear-gradient", self.styles)
 
 
+    def test_all_navigation_pages_exist_with_expected_page_type(self):
+        pages = {
+            "home": Path("docs/index.html"),
+            "search": Path("docs/search.html"),
+            "archive": Path("docs/archive.html"),
+            "tags": Path("docs/tags.html"),
+            "about": Path("docs/about.html"),
+        }
+        for page_name, page_path in pages.items():
+            html = page_path.read_text(encoding="utf-8")
+            self.assertIn(f'data-page="{page_name}"', html)
+            self.assertIn('<nav class="mobile-nav" aria-label="移动端导航">', html)
+            for label in ("首页", "搜索", "归档", "标签", "关于"):
+                self.assertIn(f'aria-label="{label}"', html)
+            self.assertIn('class="nav-label visually-hidden"', html)
+
+    def test_homepage_is_limited_to_post_stream_and_compact_header(self):
+        self.assertIn('<h1>YuCheng 的博客</h1>', self.index)
+        for obsolete in (
+            "个人技术笔记",
+            'id="postSearch"',
+            'id="topic-tabs"',
+            'id="tagCloud"',
+            'id="archiveList"',
+        ):
+            self.assertNotIn(obsolete, self.index)
+        self.assertIn('id="rightRail"', self.index)
+
+
 if __name__ == "__main__":
     unittest.main()
