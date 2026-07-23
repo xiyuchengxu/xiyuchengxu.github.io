@@ -1,100 +1,70 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YuCheng 的博客 - X 风格</title>
-    <meta name="description" content="YuCheng 的个人博客，采用 X (Twitter) 风格设计">
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YuCheng 的博客 - 技术笔记</title>
+  <meta name="description" content="YuCheng 的个人技术博客，记录编程、建站与持续学习。">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- 顶部导航栏（移动端） -->
-    <header class="header">
-        <div class="header-content">
-            <div class="logo">YuCheng</div>
-            <div class="theme-switcher">
-                <button class="theme-btn" id="themeToggle" aria-label="切换主题">
-                    <svg class="theme-icon" viewBox="0 0 24 24">
-                        <path d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z"/>
-                    </svg>
-                </button>
-            </div>
-        </div>
+  <div class="app-shell">
+    <header class="mobile-header">
+      <a class="wordmark" href="index.html">YuCheng 的博客</a>
+      <button class="icon-button" id="themeToggle" type="button" aria-label="切换主题" title="切换主题">◐</button>
     </header>
 
-    <div class="container">
-        <!-- 主内容区 -->
-        <main class="main-content">
-            <!-- 内容头部 -->
-            <div class="content-header">
-                <h1 class="content-title">首页</h1>
-            </div>
+    <aside class="sidebar" aria-label="站点导航">
+      <a class="wordmark" href="index.html">YuCheng 的博客</a>
+      <nav class="sidebar-nav" aria-label="主导航">
+        <a class="nav-link is-active" href="index.html" data-view="home">⌂<span>首页</span></a>
+        <a class="nav-link" href="#articles" data-view="articles">▤<span>文章</span></a>
+        <a class="nav-link" href="#tags" data-view="tags">#<span>标签</span></a>
+        <a class="nav-link" href="#archive" data-view="archive">◷<span>归档</span></a>
+        <a class="nav-link" href="#about" data-view="about">i<span>关于</span></a>
+      </nav>
+      <button class="theme-button" id="themeToggleDesktop" type="button" aria-label="切换主题" title="切换主题">◐<span>主题</span></button>
+    </aside>
 
-            <!-- 标签切换 -->
-            <div class="tabs">
-                <button class="tab active" data-tab="recommend">推荐</button>
-                <button class="tab" data-tab="hot">热议</button>
-                <button class="tab" data-tab="follow">关注</button>
-            </div>
+    <main class="timeline" id="mainContent">
+      <header class="timeline-header">
+        <div><p class="eyebrow">个人技术笔记</p><h1>YuCheng 的博客</h1></div>
+        <button class="icon-button" id="searchToggle" type="button" aria-label="搜索文章" title="搜索文章">⌕</button>
+      </header>
+      <form class="search-panel" id="searchPanel" role="search" hidden>
+        <label for="postSearch">搜索文章</label>
+        <input id="postSearch" name="q" type="search" autocomplete="off" placeholder="按标题、摘要或标签搜索">
+      </form>
+      <nav class="topic-tabs" id="articles" aria-label="文章栏目">
+        <button class="topic-tab is-active" type="button" data-filter="all" aria-pressed="true">全部文章</button>
+        <button class="topic-tab" type="button" data-filter="technical" aria-pressed="false">技术笔记</button>
+        <button class="topic-tab" type="button" data-filter="notes" aria-pressed="false">随想</button>
+      </nav>
+      <section class="post-list" id="postsList" aria-live="polite" aria-busy="true">
+        <article class="skeleton-post" aria-hidden="true"><div class="skeleton-line skeleton-meta"></div><div class="skeleton-line skeleton-title"></div><div class="skeleton-line skeleton-body"></div><div class="skeleton-line skeleton-actions"></div></article>
+        <article class="skeleton-post" aria-hidden="true"><div class="skeleton-line skeleton-meta"></div><div class="skeleton-line skeleton-title"></div><div class="skeleton-line skeleton-body"></div><div class="skeleton-line skeleton-actions"></div></article>
+        <article class="skeleton-post" aria-hidden="true"><div class="skeleton-line skeleton-meta"></div><div class="skeleton-line skeleton-title"></div><div class="skeleton-line skeleton-body"></div><div class="skeleton-line skeleton-actions"></div></article>
+      </section>
+      <noscript><p class="noscript-message">文章目录需要 JavaScript 加载。请直接查看 <a href="posts/2024-01-15-hello-world.html">现有文章</a>。</p></noscript>
+    </main>
 
-            <!-- 博文列表 -->
-            <div id="postsList"></div>
-        </main>
+    <aside class="rail" aria-label="博客辅助信息">
+      <section class="author-summary" id="about"><p class="eyebrow">作者</p><h2>YuCheng</h2><p>记录编程、建站与持续学习。</p><a href="mailto:hello@example.com">联系我</a></section>
+      <section id="tags"><h2>标签</h2><div class="tag-list" id="tagCloud"></div></section>
+      <section id="archive"><h2>归档</h2><div class="archive-list" id="archiveList"></div></section>
+      <section><h2>最近文章</h2><ol class="recent-posts" id="recentPosts"></ol></section>
+    </aside>
+  </div>
 
-        <!-- 右侧边栏 -->
-        <aside class="sidebar">
-            <!-- 主题切换 -->
-            <div class="theme-switcher">
-                <button class="theme-btn" id="themeToggleDesktop" aria-label="切换主题">
-                    <svg class="theme-icon" viewBox="0 0 24 24">
-                        <path d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z"/>
-                    </svg>
-                </button>
-            </div>
-
-            <!-- 关于我 -->
-            <div class="sidebar-card">
-                <h2 class="sidebar-title">关于我</h2>
-                <div class="about-content">
-                    <p>这是 YuCheng 的个人博客，记录技术学习和生活感悟。</p>
-                </div>
-            </div>
-
-            <!-- 标签云 -->
-            <div class="sidebar-card">
-                <h2 class="sidebar-title">热门标签</h2>
-                <div class="tag-cloud" id="tagCloud"></div>
-            </div>
-        </aside>
-    </div>
-
-    <!-- 底部导航（移动端） -->
-    <nav class="bottom-nav">
-        <div class="nav-items">
-            <button class="nav-item active" aria-label="首页">
-                <svg viewBox="0 0 24 24">
-                    <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
-                </svg>
-            </button>
-            <button class="nav-item" aria-label="搜索">
-                <svg viewBox="0 0 24 24">
-                    <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-                </svg>
-            </button>
-            <button class="nav-item" aria-label="归档">
-                <svg viewBox="0 0 24 24">
-                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
-                </svg>
-            </button>
-            <button class="nav-item" aria-label="标签">
-                <svg viewBox="0 0 24 24">
-                    <path d="M17.63 5.84C17.27 5.33 16.67 5 16 5L5 5.01C3.9 5.01 3 5.9 3 7v10c0 1.1.9 1.99 2 1.99L16 19c.67 0 1.27-.33 1.63-.84L22 12l-4.37-6.16z"/>
-                </svg>
-            </button>
-        </div>
-    </nav>
-
-    <script src="posts.js"></script>
-    <script src="script.js"></script>
+  <nav class="mobile-nav" aria-label="移动端导航">
+    <a class="nav-link is-active" href="index.html" data-view="home" aria-label="首页" title="首页">⌂<span>首页</span></a>
+    <button class="nav-link" type="button" data-view="search" aria-label="搜索" title="搜索">⌕<span>搜索</span></button>
+    <a class="nav-link" href="#archive" data-view="archive" aria-label="归档" title="归档">◷<span>归档</span></a>
+    <a class="nav-link" href="#tags" data-view="tags" aria-label="标签" title="标签">#<span>标签</span></a>
+    <a class="nav-link" href="#about" data-view="about" aria-label="关于" title="关于">i<span>关于</span></a>
+  </nav>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <script src="posts.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>

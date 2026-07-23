@@ -115,10 +115,10 @@ class RepositoryContractTests(unittest.TestCase):
     def test_renderer_uses_generated_fields_and_handles_detail_page(self):
         script = Path("docs/script.js").read_text(encoding="utf-8")
         for snippet in (
-            'href="${post.url}"',
-            "${post.title}",
-            "${post.summary}",
-            "if (!postsList) return;",
+            "post.url",
+            "post.title",
+            "post.summary",
+            'getElementById("postsList")',
         ):
             self.assertIn(snippet, script)
 

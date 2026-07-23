@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "scripts": {
+    "test:visual": "playwright test --config=playwright.config.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.54.1"
+  }
+}
