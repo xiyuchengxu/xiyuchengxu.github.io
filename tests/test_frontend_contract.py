@@ -225,6 +225,23 @@ class FrontendContractTests(unittest.TestCase):
         self.assertNotIn("postMarkup(", archive_initializer)
         self.assertNotIn("post-actions", archive_initializer)
 
+    def test_styles_define_tweet_cell_grid_and_icon_action_targets(self):
+        for snippet in (
+            "grid-template-columns: 40px minmax(0, 1fr)",
+            "column-gap: 12px",
+            ".post-avatar-column",
+            ".post-content",
+            "grid-template-columns: repeat(4, minmax(44px, 1fr))",
+            ".post-action,",
+            ".post-metric",
+            "min-width: 44px",
+            "min-height: 44px",
+            ".post-action:not(:disabled):hover",
+        ):
+            self.assertIn(snippet, self.styles)
+        for obsolete in (".read-action", ".copy-action"):
+            self.assertNotIn(obsolete, self.styles)
+
     def test_styles_define_three_column_mobile_and_accessible_states(self):
         for snippet in (
             ".app-shell",
