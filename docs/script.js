@@ -53,12 +53,39 @@ function postMarkup(post) {
   const date = escapeHtml(post.date);
   const authorName = escapeHtml(author.name || "YuCheng");
   const authorHandle = escapeHtml(author.handle || "");
+  const postId = escapeHtml(String(post.id));
 
-  return `<article class="post-item">
-    <div class="post-meta"><span class="avatar" aria-hidden="true">Y</span><span><strong>${authorName}</strong> <span>${authorHandle}</span> · <time datetime="${date}">${date}</time></span></div>
-    <a class="post-link" href="${url}"><h2>${title}</h2><p>${summary}</p></a>
-    <div class="post-tags">${tags}</div>
-    <div class="post-actions"><a class="read-action" href="${url}">阅读文章 <span aria-hidden="true">→</span></a><button class="copy-action" type="button" data-url="${url}">复制链接</button></div>
+  return `<article class="post-item" data-post-id="${postId}">
+    <div class="post-avatar-column" aria-hidden="true">
+      <span class="avatar">Y</span>
+    </div>
+    <div class="post-content">
+      <div class="post-meta">
+        <strong>${authorName}</strong>
+        <span>${authorHandle}</span>
+        <span aria-hidden="true">·</span>
+        <time datetime="${date}">${date}</time>
+      </div>
+      <a class="post-link" href="${url}">
+        <h2>${title}</h2>
+        <p>${summary}</p>
+      </a>
+      <div class="post-tags">${tags}</div>
+      <div class="post-actions" aria-label="文章互动">
+        <button class="post-action" type="button" data-post-action="comment" data-post-id="${postId}" disabled aria-label="评论功能暂未开放" title="评论功能暂未开放">
+          <svg aria-hidden="true"><use href="icons.svg#icon-comment"></use></svg>
+        </button>
+        <button class="post-action" type="button" data-post-action="repost" data-post-id="${postId}" data-post-url="${url}" aria-label="转发并复制链接" title="转发并复制链接">
+          <svg aria-hidden="true"><use href="icons.svg#icon-repost"></use></svg>
+        </button>
+        <button class="post-action" type="button" data-post-action="like" data-post-id="${postId}" disabled aria-label="点赞功能暂未开放" title="点赞功能暂未开放">
+          <svg aria-hidden="true"><use href="icons.svg#icon-like"></use></svg>
+        </button>
+        <span class="post-metric" data-engagement="views" data-post-id="${postId}" role="img" aria-label="阅读量暂未统计" title="阅读量暂未统计">
+          <svg aria-hidden="true"><use href="icons.svg#icon-views"></use></svg>
+        </span>
+      </div>
+    </div>
   </article>`;
 }
 
@@ -136,8 +163,8 @@ function bindThemeButtons() {
 
 function bindArticleActions() {
   document.addEventListener("click", (event) => {
-    const copy = event.target.closest("[data-url]");
-    if (copy) copyPostLink(copy.dataset.url || "");
+    const repost = event.target.closest('[data-post-action="repost"]');
+    if (repost) copyPostLink(repost.dataset.postUrl || "");
   });
 }
 

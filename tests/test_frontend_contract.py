@@ -176,22 +176,54 @@ class FrontendContractTests(unittest.TestCase):
         self.assertIn('aria-busy="true"', self.index)
         self.assertIn('<noscript>', self.index)
 
-    def test_script_exposes_real_blog_actions_without_social_counters(self):
+    def test_script_exposes_tweet_cell_actions_without_social_data(self):
         for snippet in (
-            "function renderPosts(filteredPosts)",
-            "function matchesFilter(post, filter)",
-            "function filterPosts()",
+            "const postId = escapeHtml(String(post.id));",
+            '<article class="post-item" data-post-id="${postId}">',
+            '<div class="post-avatar-column" aria-hidden="true">',
+            '<div class="post-content">',
+            'class="post-action" type="button" data-post-action="comment"',
+            'class="post-action" type="button" data-post-action="repost"',
+            'data-post-url="${url}"',
+            'class="post-action" type="button" data-post-action="like"',
+            'class="post-metric" data-engagement="views"',
+            'href="icons.svg#icon-comment"',
+            'href="icons.svg#icon-repost"',
+            'href="icons.svg#icon-like"',
+            'href="icons.svg#icon-views"',
+            'event.target.closest(\'[data-post-action="repost"]\')',
+            "copyPostLink(repost.dataset.postUrl || \"\")",
             "navigator.clipboard.writeText",
             "function showToast(message)",
-            'localStorage.setItem("blog-theme"',
-            "post.url",
-            "post.title",
-            "post.summary",
         ):
             self.assertIn(snippet, self.script)
-        for forbidden in ("handleLike", "like-count", "repost-btn", "reply-btn", "post.stats"):
+
+        self.assertGreaterEqual(self.script.count('data-post-id="${postId}"'), 4)
+        for forbidden in (
+            "read-action",
+            "copy-action",
+            "data-url=",
+            "阅读文章",
+            "post.stats",
+            "handleLike",
+            "like-count",
+            "repost-btn",
+            "reply-btn",
+        ):
             self.assertNotIn(forbidden, self.script)
 
+    def test_local_svg_sprite_defines_tweet_cell_icons(self):
+        sprite = Path("docs/icons.svg").read_text(encoding="utf-8")
+        for icon_id in ("icon-comment", "icon-repost", "icon-like", "icon-views"):
+            self.assertIn(f'<symbol id="{icon_id}" viewBox="0 0 24 24">', sprite)
+
+    def test_archive_initializer_keeps_the_compact_list(self):
+        archive_initializer = self.script.split("function initArchivePage()", 1)[1].split(
+            "function initTagsPage()", 1
+        )[0]
+        self.assertIn('<section class="archive-group">', archive_initializer)
+        self.assertNotIn("postMarkup(", archive_initializer)
+        self.assertNotIn("post-actions", archive_initializer)
 
     def test_styles_define_three_column_mobile_and_accessible_states(self):
         for snippet in (
