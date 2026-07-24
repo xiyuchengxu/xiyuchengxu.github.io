@@ -348,6 +348,9 @@ a { -webkit-tap-highlight-color: transparent; }
 .post-metric svg {
   width: 20px;
   height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
 }
 
 .post-action:not(:disabled):hover,

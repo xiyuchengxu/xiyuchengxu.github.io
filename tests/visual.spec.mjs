@@ -204,6 +204,19 @@ test("tweet cell keeps the avatar column empty and copies repost links at 320px"
   await expect(post.locator(".post-content")).toHaveCount(1);
   await expectTweetCellGeometry(page);
 
+  const iconPaint = await post.locator(".post-actions svg").evaluateAll((icons) =>
+    icons.map((icon) => {
+      const style = getComputedStyle(icon);
+      return { fill: style.fill, stroke: style.stroke, strokeWidth: style.strokeWidth };
+    }),
+  );
+  expect(iconPaint).toHaveLength(4);
+  for (const icon of iconPaint) {
+    expect(icon.fill).toBe("none");
+    expect(icon.stroke).not.toBe("none");
+    expect(Number.parseFloat(icon.strokeWidth)).toBeGreaterThan(0);
+  }
+
   await expect(post.getByRole("button", { name: "评论功能暂未开放" })).toBeDisabled();
   await expect(post.getByRole("button", { name: "点赞功能暂未开放" })).toBeDisabled();
   await expect(post.locator('[data-engagement="views"]')).toHaveAttribute("role", "img");

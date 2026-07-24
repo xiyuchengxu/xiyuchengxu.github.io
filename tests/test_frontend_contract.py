@@ -186,6 +186,7 @@ class FrontendContractTests(unittest.TestCase):
             'class="post-action" type="button" data-post-action="repost"',
             'data-post-url="${url}"',
             'class="post-action" type="button" data-post-action="like"',
+            '<div class="post-actions" role="group" aria-label="文章互动">',
             'class="post-metric" data-engagement="views"',
             'href="icons.svg#icon-comment"',
             'href="icons.svg#icon-repost"',

@@ -71,7 +71,7 @@ function postMarkup(post) {
         <p>${summary}</p>
       </a>
       <div class="post-tags">${tags}</div>
-      <div class="post-actions" aria-label="文章互动">
+      <div class="post-actions" role="group" aria-label="文章互动">
         <button class="post-action" type="button" data-post-action="comment" data-post-id="${postId}" disabled aria-label="评论功能暂未开放" title="评论功能暂未开放">
           <svg aria-hidden="true"><use href="icons.svg#icon-comment"></use></svg>
         </button>
